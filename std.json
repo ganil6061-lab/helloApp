@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Anil Gupta",
+    "description": "Android Studio aur Java programming seekh rahe hain."
+  },
+  {
+    "name": "Rahul Sharma",
+    "description": "Java programming aur RecyclerView par practice kar rahe hain."
+  },
+  {
+    "name": "Priya Verma",
+    "description": "Android app development aur XML layouts seekh rahi hain."
+  },
+  {
+    "name": "Amit Patel",
+    "description": "JSON aur API ke saath kaam karna seekh rahe hain."
+  },
+  {
+    "name": "Neha Singh",
+    "description": "Java mein object oriented programming ki practice kar rahi hain."
+  },
+  {
+    "name": "Rohit Yadav",
+    "description": "Android applications banane aur testing karne mein interested hain."
+  },
+  {
+    "name": "Pooja Mishra",
+    "description": "Android Studio mein user interface design karna seekh rahi hain."
+  },
+  {
+    "name": "Vikas Tiwari",
+    "description": "Java classes aur objects ko samajhne ki practice kar rahe hain."
+  },
+  {
+    "name": "Sneha Jain",
+    "description": "Mobile application development ke basics seekh rahi hain."
+  },
+  {
+    "name": "Deepak Sharma",
+    "description": "RecyclerView aur Adapter ke concepts par practice kar rahe hain."
+  },
+  {
+    "name": "Kavita Patel",
+    "description": "Android XML aur different UI components ke baare mein seekh rahi hain."
+  },
+  {
+    "name": "Suresh Kumar",
+    "description": "Java mein ArrayList aur data handling ki practice kar rahe hain."
+  },
+  {
+    "name": "Riya Gupta",
+    "description": "JSON data ko Android application mein display karna seekh rahi hain."
+  },
+  {
+    "name": "Manish Verma",
+    "description": "Android apps mein API se data fetch karne ki practice kar rahe hain."
+  },
+  {
+    "name": "Komal Sharma",
+    "description": "Android Studio mein simple educational application bana rahi hain."
+  },
+  {
+    "name": "Ajay Singh",
+    "description": "Java methods aur arguments ko detail mein samajh rahe hain."
+  },
+  {
+    "name": "Nisha Yadav",
+    "description": "Android buttons aur click events ke saath practice kar rahi hain."
+  },
+  {
+    "name": "Rakesh Patel",
+    "description": "WebView aur JavaScript integration ke baare mein seekh rahe hain."
+  },
+  {
+    "name": "Simran Verma",
+    "description": "Android application mein external JSON file use karna seekh rahi hain."
+  },
+  {
+    "name": "Mohit Gupta",
+    "description": "Java programming ke basic concepts ko revise kar rahe hain."
+  },
+  {
+    "name": "Aarti Sharma",
+    "description": "RecyclerView mein multiple student records display kar rahi hain."
+  },
+  {
+    "name": "Karan Singh",
+    "description": "Android application ke liye custom Adapter banana seekh rahe hain."
+  },
+  {
+    "name": "Muskan Jain",
+    "description": "Java mein inheritance aur polymorphism ke concepts seekh rahi hain."
+  },
+  {
+    "name": "Naveen Kumar",
+    "description": "Android Studio mein different types ke layouts par practice kar rahe hain."
+  },
+  {
+    "name": "Shivani Patel",
+    "description": "JSON objects aur arrays ko samajhne ki practice kar rahi hain."
+  },
+  {
+    "name": "Gaurav Mishra",
+    "description": "Android applications mein internet se data load karna seekh rahe hain."
+  },
+  {
+    "name": "Pallavi Singh",
+    "description": "Java mein variables, methods aur classes par practice kar rahi hain."
+  },
+  {
+    "name": "Arjun Yadav",
+    "description": "Android Studio mein beginner level applications bana rahe hain."
+  },
+  {
+    "name": "Divya Sharma",
+    "description": "RecyclerView ke saath CardView use karna seekh rahi hain."
+  },
+  {
+    "name": "Ravi Gupta",
+    "description": "Android app mein JSON data ko parse karke display karna seekh rahe hain."
+  }
+]
