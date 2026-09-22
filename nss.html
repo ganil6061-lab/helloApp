@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON List & Description</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 500px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* List styling */
+    .item-list {
+      list-style: none;
+      max-height: 250px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+
+    .item-list li {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s, color 0.2s;
+      font-weight: 500;
+      color: #444;
+    }
+
+    .item-list li:last-child {
+      border-bottom: none;
+    }
+
+    .item-list li:hover {
+      background-color: #f0f4ff;
+      color: #0056b3;
+    }
+
+    .item-list li.active {
+      background-color: #007bff;
+      color: #ffffff;
+    }
+
+    /* Description box */
+    .details-box {
+      background-color: #f9fafb;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 15px;
+      min-height: 90px;
+      color: #555;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .details-box .title {
+      font-weight: bold;
+      color: #222;
+      margin-bottom: 6px;
+    }
+
+    .loading-text {
+      text-align: center;
+      color: #888;
+      padding: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>आइटम लिस्ट</h2>
+
+    <!-- नाम दिखाने वाली लिस्ट -->
+    <ul class="item-list" id="listContainer">
+      <li class="loading-text">डेटा लोड हो रहा है...</li>
+    </ul>
+
+    <!-- क्लिक करने पर दिखने वाला विवरण -->
+    <div class="details-box" id="detailsBox">
+      <p>किसी भी नाम पर क्लिक करें विवरण देखने के लिए।</p>
+    </div>
+  </div>
+
+  <script>
+    // 🔴 यहाँ अपना GitHub Raw JSON लिंक डालें:
+    const GITHUB_JSON_URL = 'https://ganil6061-lab.github.io/helloApp/std.json';
+
+    const listContainer = document.getElementById('listContainer');
+    const detailsBox = document.getElementById('detailsBox');
+
+    // JSON डेटा फेच करने का फंक्शन
+    async function loadData() {
+      try {
+        const response = await fetch(GITHUB_JSON_URL);
+
+        if (!response.ok) {
+          throw new Error('नेटवर्क रिस्पॉन्स सही नहीं था');
+        }
+
+        const data = await response.json();
+        renderList(data);
+      } catch (error) {
+        // अगर कोई एरर आए तो यूजर को तकनीकी एरर दिखाए बिना साफ मैसेज दें
+        listContainer.innerHTML = '<li class="loading-text" style="color: red;">डेटा लोड करने में असमर्थ।</li>';
+        console.error('Error details:', error);
+      }
+    }
+
+    // लिस्ट को स्क्रीन पर दिखाने का फंक्शन
+    function renderList(items) {
+      listContainer.innerHTML = '';
+
+      items.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item.name;
+
+        // क्लिक इवेंट
+        li.addEventListener('click', () => {
+          // एक्टिव क्लास सेट करना
+          document.querySelectorAll('.item-list li').forEach(el => el.classList.remove('active'));
+          li.classList.add('active');
+
+          // विवरण दिखाना
+          detailsBox.innerHTML = `
+            <div class="title">${item.name}</div>
+            <p>${item.description}</p>
+          `;
+        });
+
+        listContainer.appendChild(li);
+      });
+    }
+
+    // पेज लोड होने पर डेटा लाएं
+    loadData();
+  </script>
+
+</body>
+</html>
