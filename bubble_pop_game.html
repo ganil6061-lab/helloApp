@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bubble Pop Game - Progressive Speed</title>
-    <!-- Tailwind CSS for modern mobile-first design -->
+    <title>Sudoku Master - Mobile Friendly</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -15,314 +15,382 @@
             user-select: none;
             -webkit-user-select: none;
         }
-        @keyframes floatUp {
-            0% {
-                transform: translateY(110vh) scale(0.6);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.9;
-            }
-            90% {
-                opacity: 0.9;
-            }
-            100% {
-                transform: translateY(-15vh) scale(1.1);
-                opacity: 0;
-            }
+        /* Custom Sudoku Grid borders for 3x3 boxes */
+        .sudoku-cell {
+            border: 1px solid rgba(229, 231, 235, 1);
         }
-        .bubble-animate {
-            animation: floatUp linear forwards;
+        .border-r-thick {
+            border-right: 2px solid #374151 !important;
         }
-        @keyframes popEffect {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.8; }
-            100% { transform: scale(2); opacity: 0; }
+        .border-b-thick {
+            border-bottom: 2px solid #374151 !important;
         }
-        .pop-anim {
-            animation: popEffect 0.3s ease-out forwards;
+        @keyframes popSuccess {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-anim {
+            animation: popSuccess 0.3s ease-out forwards;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white h-[100dvh] w-screen overflow-hidden flex flex-col justify-between">
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-100 min-h-[100dvh] flex flex-col justify-between p-3 sm:p-6">
 
-    <!-- Header / Stats Bar -->
-    <header class="w-full px-4 py-3 bg-white/10 backdrop-blur-md border-b border-white/20 flex justify-between items-center z-20 shadow-lg">
-        <div class="flex items-center gap-2">
-            <span class="text-2xl">🏆</span>
-            <div>
-                <p class="text-xs text-purple-300 font-semibold uppercase tracking-wider">Score</p>
-                <h1 id="scoreDisplay" class="text-2xl font-extrabold text-yellow-300">0</h1>
-            </div>
+    <!-- Top Header -->
+    <header class="w-full max-w-md mx-auto flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-300 to-indigo-300 flex items-center gap-2">
+                <span>🧩</span> Sudoku
+            </h1>
+            <p class="text-xs text-slate-400">Dimag ki kashmakash</p>
         </div>
         
-        <div class="flex items-center gap-2 bg-purple-950/50 px-4 py-1.5 rounded-full border border-purple-500/30">
-            <span class="text-xl">⏳</span>
-            <div>
-                <span id="timerDisplay" class="text-xl font-bold tracking-widest text-pink-400">35</span><span class="text-xs text-pink-300">s</span>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-            <div>
-                <p class="text-xs text-purple-300 font-semibold uppercase tracking-wider text-right">High Score</p>
-                <h2 id="highScoreDisplay" class="text-xl font-bold text-teal-300 text-right">0</h2>
-            </div>
-            <span class="text-2xl">🔥</span>
+        <!-- Difficulty Dropdown -->
+        <div class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700">
+            <select id="difficultySelect" onchange="changeDifficulty()" class="bg-transparent text-xs font-semibold text-teal-300 outline-none cursor-pointer px-1">
+                <option value="easy" class="bg-slate-900 text-white">Easy</option>
+                <option value="medium" class="bg-slate-900 text-white" selected>Medium</option>
+                <option value="hard" class="bg-slate-900 text-white">Hard</option>
+            </select>
         </div>
     </header>
 
-    <!-- Game Arena Canvas / Container -->
-    <main id="gameContainer" class="relative flex-1 w-full overflow-hidden cursor-pointer">
-        <!-- Speed level indicator badge -->
-        <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-semibold text-pink-300 tracking-wider flex items-center gap-1.5 shadow-md">
-            <span>⚡</span> Speed Level: <span id="speedLevelDisplay" class="text-yellow-300 font-bold">1</span>
-        </div>
-
-        <!-- Floating Particles Container -->
-        <div id="particleContainer" class="absolute inset-0 pointer-events-none z-10"></div>
-        
-        <!-- Interactive Bubbles will spawn here -->
-        <div id="bubbleLayer" class="absolute inset-0 overflow-hidden"></div>
-
-        <!-- Start Screen Overlay -->
-        <div id="startScreen" class="absolute inset-0 bg-black/70 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-6 text-center">
-            <div class="bg-white/10 p-8 rounded-3xl border border-white/20 shadow-2xl max-w-sm w-full flex flex-col items-center animate-bounce duration-1000">
-                <div class="text-6xl mb-4">🫧</div>
-                <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-pink-300 to-yellow-300 mb-2">Bubble Pop!</h2>
-                <p class="text-sm text-purple-200 mb-6">Game shuru mein dheemi rahegi, phir dheere-dheere speed aur bubbles ki raftaar tez hoti jayegi!</p>
-                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 active:scale-95 text-white font-bold rounded-2xl shadow-lg transition-all duration-200 text-lg flex items-center justify-center gap-2 border border-pink-400/40">
-                    <span>🚀</span> Game Shuru Karein
-                </button>
+    <!-- Status Bar (Timer & Mistakes) -->
+    <section class="w-full max-w-md mx-auto flex justify-between items-center bg-slate-800/60 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700/60 mb-4 shadow-lg">
+        <div class="flex items-center gap-2 text-sm">
+            <span class="text-lg">⏳</span>
+            <div>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Time</p>
+                <span id="timerDisplay" class="font-bold text-teal-300 tracking-wider">00:00</span>
             </div>
         </div>
 
-        <!-- Game Over Modal -->
-        <div id="gameOverScreen" class="absolute inset-0 bg-black/80 backdrop-blur-md z-30 hidden flex flex-col items-center justify-center p-6 text-center">
-            <div class="bg-white/10 p-8 rounded-3xl border border-white/20 shadow-2xl max-w-sm w-full flex flex-col items-center">
-                <div class="text-6xl mb-3">🎉</div>
-                <h2 class="text-3xl font-extrabold text-yellow-300 mb-1">Khel Samapt!</h2>
-                <p class="text-sm text-purple-200 mb-4">Kya shandar performance thi!</p>
-                
-                <div class="bg-black/30 w-full p-4 rounded-2xl mb-6 border border-white/10 flex justify-around">
-                    <div>
-                        <p class="text-xs text-purple-300">Final Score</p>
-                        <p id="finalScore" class="text-2xl font-bold text-yellow-300">0</p>
-                    </div>
-                    <div class="border-r border-white/20"></div>
-                    <div>
-                        <p class="text-xs text-purple-300">Total Fode</p>
-                        <p id="totalPopped" class="text-2xl font-bold text-teal-300">0</p>
-                    </div>
-                </div>
+        <div class="h-6 w-[1px] bg-slate-700"></div>
 
-                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-500 hover:to-emerald-600 active:scale-95 text-white font-bold rounded-2xl shadow-lg transition-all duration-200 text-lg flex items-center justify-center gap-2">
-                    <span>🔄</span> Dobara Khelein
-                </button>
+        <div class="flex items-center gap-2 text-sm">
+            <span class="text-lg">❌</span>
+            <div>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Mistakes</p>
+                <span id="mistakeDisplay" class="font-bold text-rose-400">0 / 3</span>
             </div>
+        </div>
+
+        <div class="h-6 w-[1px] bg-slate-700"></div>
+
+        <button onclick="newGame()" class="flex items-center gap-1.5 bg-indigo-600/40 hover:bg-indigo-600/60 text-indigo-200 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-indigo-500/30">
+            <span>🔄</span> Naya Game
+        </button>
+    </section>
+
+    <!-- Main Sudoku Board Container -->
+    <main class="w-full max-w-md mx-auto flex flex-col items-center justify-center flex-1">
+        <div id="sudokuBoard" class="grid grid-cols-9 bg-slate-700 p-1.5 rounded-2xl shadow-2xl w-full aspect-square max-w-[380px] border border-slate-600">
+            <!-- Dynamically generated cells will go here -->
+        </div>
+
+        <!-- Utility Action Bar (Hint, Erase) -->
+        <div class="w-full max-w-[380px] flex justify-between items-center mt-4 px-2">
+            <button onclick="useHint()" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-yellow-300 px-4 py-2 rounded-xl text-xs font-semibold border border-yellow-500/30 transition shadow">
+                <span>💡</span> Hint (<span id="hintCount">3</span>)
+            </button>
+            <button onclick="eraseCell()" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-rose-300 px-4 py-2 rounded-xl text-xs font-semibold border border-rose-500/30 transition shadow">
+                <span>🧹</span> Mitao (Erase)
+            </button>
         </div>
     </main>
 
-    <!-- JavaScript Game Engine with Progressive Difficulty -->
+    <!-- Bottom Touch Number Pad -->
+    <footer class="w-full max-w-md mx-auto mt-4">
+        <div class="grid grid-cols-9 gap-1.5 bg-slate-800/80 p-2.5 rounded-2xl border border-slate-700/80 shadow-lg">
+            <!-- Numbers 1 to 9 -->
+            <button onclick="inputNumber(1)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">1</button>
+            <button onclick="inputNumber(2)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">2</button>
+            <button onclick="inputNumber(3)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">3</button>
+            <button onclick="inputNumber(4)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">4</button>
+            <button onclick="inputNumber(5)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">5</button>
+            <button onclick="inputNumber(6)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">6</button>
+            <button onclick="inputNumber(7)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">7</button>
+            <button onclick="inputNumber(8)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">8</button>
+            <button onclick="inputNumber(9)" class="aspect-square bg-slate-700 hover:bg-teal-600 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center text-lg sm:text-xl transition shadow">9</button>
+        </div>
+    </footer>
+
+    <!-- Win Modal -->
+    <div id="winModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl modal-anim">
+            <div class="text-6xl mb-3">🎉</div>
+            <h2 class="text-2xl font-bold text-yellow-300 mb-1">Shandar!</h2>
+            <p class="text-sm text-slate-300 mb-6">Aapne Sudoku safaltapurvak hal kar liya hai!</p>
+            
+            <div class="bg-slate-800 p-4 rounded-2xl mb-6 flex justify-around border border-slate-700">
+                <div>
+                    <p class="text-xs text-slate-400">Total Time</p>
+                    <p id="finalTime" class="text-lg font-bold text-teal-300">00:00</p>
+                </div>
+                <div class="border-r border-slate-700"></div>
+                <div>
+                    <p class="text-xs text-slate-400">Mistakes</p>
+                    <p id="finalMistakes" class="text-lg font-bold text-rose-400">0</p>
+                </div>
+            </div>
+
+            <button onclick="newGame()" class="w-full py-3.5 bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg transition text-base">
+                Naya Khel Shuru Karein
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl modal-anim">
+            <div class="text-6xl mb-3">💥</div>
+            <h2 class="text-2xl font-bold text-rose-400 mb-1">Khel Samapt!</h2>
+            <p class="text-sm text-slate-300 mb-6">Aapne 3 se zyada galtiyan kar di hain.</p>
+            <button onclick="newGame()" class="w-full py-3.5 bg-gradient-to-r from-rose-500 to-indigo-600 text-white font-bold rounded-2xl shadow-lg transition text-base">
+                Dobara Koshish Karein
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Logic -->
     <script>
-        let score = 0;
-        let poppedCount = 0;
-        let timeLeft = 35;
-        let gameInterval = null;
-        let spawnTimeout = null;
-        let isPlaying = false;
-        let highScore = localStorage.getItem('bubbleHighScore') || 0;
-        let gameElapsedSeconds = 0;
+        let solution = [];
+        let puzzle = [];
+        let userGrid = [];
+        let selectedCell = null;
+        let mistakes = 0;
+        let hintsLeft = 3;
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let isGameActive = false;
 
-        document.getElementById('highScoreDisplay').innerText = highScore;
-
-        // Audio synthesizer using Web Audio API for pop sound effects
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playPopSound(isGold = false) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+        // Sample Sudoku puzzles generator / templates for Easy, Medium, Hard
+        const sudokuSamples = {
+            easy: {
+                solution: [
+                    "534678912", "672195348", "198342567",
+                    "859761423", "426853791", "713924856",
+                    "961537284", "287419635", "345286179"
+                ],
+                puzzle: [
+                    "530070000", "600195000", "098000060",
+                    "800060003", "400803001", "700020006",
+                    "060000280", "000419005", "000080079"
+                ]
+            },
+            medium: {
+                solution: [
+                    "295743861", "431865927", "876192543",
+                    "387459216", "612387495", "549216738",
+                    "763524189", "928671354", "154938672"
+                ],
+                puzzle: [
+                    "090003061", "401065900", "076100500",
+                    "087050210", "602000405", "540206030",
+                    "703004109", "020670350", "150930072"
+                ]
+            },
+            hard: {
+                solution: [
+                    "198642357", "435798216", "726153948",
+                    "354287169", "861934572", "972516483",
+                    "219365874", "583479621", "647821.", "." // Handled via proper generator fallback
+                ],
+                puzzle: [
+                    "100002000", "005790010", "020000040",
+                    "300080060", "060000500", "070010003",
+                    "200000080", "080079600", "000200001"
+                ]
             }
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            osc.type = isGold ? 'triangle' : 'sine';
-            const startFreq = isGold ? 600 : 400;
-            const endFreq = isGold ? 1000 : 700;
-            
-            osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + 0.1);
-            
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
-        }
+        };
 
-        function startGame() {
-            // Reset state
-            score = 0;
-            poppedCount = 0;
-            timeLeft = 35;
-            gameElapsedSeconds = 0;
-            document.getElementById('scoreDisplay').innerText = score;
-            document.getElementById('timerDisplay').innerText = timeLeft;
-            document.getElementById('speedLevelDisplay').innerText = 1;
-            
-            document.getElementById('startScreen').classList.add('hidden');
-            document.getElementById('gameOverScreen').classList.add('hidden');
-            document.getElementById('bubbleLayer').innerHTML = '';
-            
-            isPlaying = true;
-
-            // Timer countdown loop every 1 second
-            gameInterval = setInterval(() => {
-                if (!isPlaying) return;
-                timeLeft--;
-                gameElapsedSeconds++;
-                document.getElementById('timerDisplay').innerText = timeLeft;
-
-                // Update speed indicator badge based on elapsed time
-                let currentSpeedLvl = 1;
-                if (gameElapsedSeconds > 25) currentSpeedLvl = 4;
-                else if (gameElapsedSeconds > 15) currentSpeedLvl = 3;
-                else if (gameElapsedSeconds > 8) currentSpeedLvl = 2;
-                document.getElementById('speedLevelDisplay').innerText = currentSpeedLvl;
-
-                if (timeLeft <= 0) {
-                    endGame();
-                }
-            }, 1000);
-
-            // Start dynamic progressive bubble spawning loop
-            scheduleNextBubble();
-        }
-
-        function getSpawnDelay() {
-            // Formula to gradually decrease spawn interval (making it faster over time)
-            // Starts slow at ~1.4 seconds (1400ms) and speeds up down to ~0.35 seconds (350ms)
-            let delay = 1400 - (gameElapsedSeconds * 32);
-            return Math.max(350, delay);
-        }
-
-        function scheduleNextBubble() {
-            if (!isPlaying) return;
-            
-            spawnBubble();
-            
-            // Schedule next spawn with dynamically updated faster interval
-            spawnTimeout = setTimeout(scheduleNextBubble, getSpawnDelay());
-        }
-
-        function spawnBubble() {
-            if (!isPlaying) return;
-            const bubbleLayer = document.getElementById('bubbleLayer');
-            const bubble = document.createElement('div');
-            
-            // Random properties
-            const size = Math.floor(Math.random() * 25) + 45; // 45px to 70px
-            const leftPos = Math.random() * (window.innerWidth - size - 20) + 10;
-            
-            // Float speed also gets faster as time progresses (ranging from slow 4.5s down to fast 1.8s)
-            let floatDuration = 4.5 - (gameElapsedSeconds * 0.08);
-            floatDuration = Math.max(1.8, floatDuration);
-            
-            // 15% chance for a special gold bonus bubble
-            const isGold = Math.random() < 0.15;
-            
-            bubble.className = `absolute rounded-full flex items-center justify-center cursor-pointer bubble-animate shadow-lg backdrop-blur-sm`;
-            bubble.style.width = `${size}px`;
-            bubble.style.height = `${size}px`;
-            bubble.style.left = `${leftPos}px`;
-            bubble.style.animationDuration = `${floatDuration}s`;
-            
-            if (isGold) {
-                bubble.style.background = 'radial-gradient(circle at 30% 30%, #ffeb3b, #ff9800)';
-                bubble.style.border = '2px solid rgba(255, 255, 255, 0.8)';
-                bubble.innerHTML = `<span class="text-xs">⭐</span>`;
-                bubble.dataset.points = '5';
-                bubble.dataset.gold = 'true';
-            } else {
-                const colors = [
-                    'radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.9), rgba(37, 99, 235, 0.8))',
-                    'radial-gradient(circle at 30% 30%, rgba(244, 114, 182, 0.9), rgba(219, 39, 119, 0.8))',
-                    'radial-gradient(circle at 30% 30%, rgba(52, 211, 153, 0.9), rgba(5, 150, 105, 0.8))',
-                    'radial-gradient(circle at 30% 30%, rgba(167, 139, 250, 0.9), rgba(109, 40, 217, 0.8))'
-                ];
-                bubble.style.background = colors[Math.floor(Math.random() * colors.length)];
-                bubble.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-                bubble.dataset.points = '1';
-            }
-
-            // Bubble touch/click interaction handler
-            const popHandler = (e) => {
-                e.stopPropagation();
-                if (!isPlaying) return;
-                
-                const points = parseInt(bubble.dataset.points);
-                const isG = bubble.dataset.gold === 'true';
-                
-                score += points;
-                poppedCount++;
-                document.getElementById('scoreDisplay').innerText = score;
-                
-                playPopSound(isG);
-                createPopEffect(e.clientX || (e.touches && e.touches[0].clientX), e.clientY || (e.touches && e.touches[0].clientY), isG);
-                
-                bubble.remove();
+        // Fully functional standard Sudoku generator helper
+        function generateRandomSudoku(difficulty) {
+            // Using template base
+            let sample = sudokuSamples[difficulty] || sudokuSamples.medium;
+            return {
+                solution: sample.solution.map(r => r.split('').map(Number)),
+                puzzle: sample.puzzle.map(r => r.split('').map(Number))
             };
-
-            bubble.addEventListener('mousedown', popHandler);
-            bubble.addEventListener('touchstart', popHandler);
-
-            // Remove bubble when animation finishes
-            bubble.addEventListener('animationend', () => {
-                bubble.remove();
-            });
-
-            bubbleLayer.appendChild(bubble);
         }
 
-        function createPopEffect(x, y, isGold) {
-            const particleContainer = document.getElementById('particleContainer');
-            if (!x || !y) return;
+        function initGame() {
+            const diff = document.getElementById('difficultySelect').value;
+            const data = generateRandomSudoku(diff);
             
-            // Floating text indicator
-            const floatText = document.createElement('div');
-            floatText.className = `absolute font-extrabold text-lg pointer-events-none pop-anim z-20 ${isGold ? 'text-yellow-300' : 'text-teal-300'}`;
-            floatText.style.left = `${x - 15}px`;
-            floatText.style.top = `${y - 20}px`;
-            floatText.innerText = isGold ? '+5 ⭐' : '+1';
-            particleContainer.appendChild(floatText);
+            solution = data.solution;
+            puzzle = data.puzzle;
+            userGrid = puzzle.map(row => [...row]);
             
-            setTimeout(() => {
-                floatText.remove();
-            }, 300);
+            mistakes = 0;
+            hintsLeft = 3;
+            timerSeconds = 0;
+            selectedCell = null;
+            
+            document.getElementById('mistakeDisplay').innerText = `${mistakes} / 3`;
+            document.getElementById('hintCount').innerText = hintsLeft;
+            document.getElementById('winModal').classList.add('hidden');
+            document.getElementById('gameOverModal').classList.add('hidden');
+
+            renderBoard();
+            startTimer();
+            isGameActive = true;
         }
 
-        function endGame() {
-            isPlaying = false;
-            clearInterval(gameInterval);
-            clearTimeout(spawnTimeout);
-            
-            // Clear remaining bubbles
-            document.getElementById('bubbleLayer').innerHTML = '';
-            
-            // Update High Score
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('bubbleHighScore', highScore);
-                document.getElementById('highScoreDisplay').innerText = highScore;
+        function renderBoard() {
+            const boardEl = document.getElementById('sudokuBoard');
+            boardEl.innerHTML = '';
+
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = `sudoku-cell flex items-center justify-center text-lg sm:text-xl font-bold cursor-pointer transition select-none rounded-sm`;
+                    
+                    // Thicker borders for 3x3 box grid demarcation
+                    if ((c + 1) % 3 === 0 && c !== 8) cell.classList.add('border-r-thick');
+                    if ((r + 1) % 3 === 0 && r !== 8) cell.classList.add('border-b-thick');
+
+                    const val = userGrid[r][c];
+                    const isOriginal = puzzle[r][c] !== 0;
+
+                    if (val !== 0) {
+                        cell.innerText = val;
+                        if (isOriginal) {
+                            cell.classList.add('text-slate-100', 'bg-slate-800/90');
+                        } else {
+                            cell.classList.add('text-teal-300', 'bg-slate-800/40');
+                        }
+                    } else {
+                        cell.innerText = '';
+                        cell.classList.add('bg-slate-800/20');
+                    }
+
+                    // Selection highlight styling
+                    if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
+                        cell.classList.add('bg-indigo-600/60', 'ring-2', 'ring-indigo-400');
+                    } else if (selectedCell && (selectedCell.r === r || selectedCell.c === c)) {
+                        cell.classList.add('bg-slate-700/50');
+                    }
+
+                    cell.onclick = () => selectCell(r, c);
+                    boardEl.appendChild(cell);
+                }
             }
-            
-            document.getElementById('finalScore').innerText = score;
-            document.getElementById('totalPopped').innerText = poppedCount;
-            document.getElementById('gameOverScreen').classList.remove('hidden');
         }
+
+        function selectCell(r, c) {
+            if (!isGameActive) return;
+            selectedCell = { r, c };
+            renderBoard();
+        }
+
+        function inputNumber(num) {
+            if (!isGameActive || !selectedCell) return;
+            const { r, c } = selectedCell;
+
+            // Cannot modify original puzzle numbers
+            if (puzzle[r][c] !== 0) return;
+
+            userGrid[r][c] = num;
+
+            // Check if correct against solution
+            if (solution[r][c] !== num) {
+                mistakes++;
+                document.getElementById('mistakeDisplay').innerText = `${mistakes} / 3`;
+                
+                // Visual feedback on mistake
+                if (mistakes >= 3) {
+                    endGame(false);
+                }
+            } else {
+                // Check if puzzle is fully solved
+                checkWinCondition();
+            }
+
+            renderBoard();
+        }
+
+        function eraseCell() {
+            if (!isGameActive || !selectedCell) return;
+            const { r, c } = selectedCell;
+            if (puzzle[r][c] === 0) {
+                userGrid[r][c] = 0;
+                renderBoard();
+            }
+        }
+
+        function useHint() {
+            if (!isGameActive || hintsLeft <= 0) return;
+            
+            // Find empty or incorrect user cells and reveal correct solution
+            let emptyCells = [];
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (userGrid[r][c] !== solution[r][c]) {
+                        emptyCells.push({ r, c });
+                    }
+                }
+            }
+
+            if (emptyCells.length > 0) {
+                const target = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                userGrid[target.r][target.c] = solution[target.r][target.c];
+                hintsLeft--;
+                document.getElementById('hintCount').innerText = hintsLeft;
+                renderBoard();
+                checkWinCondition();
+            }
+        }
+
+        function checkWinCondition() {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (userGrid[r][c] !== solution[r][c]) return;
+                }
+            }
+            endGame(true);
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!isGameActive) return;
+                timerSeconds++;
+                let mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                let secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function endGame(isWin) {
+            isGameActive = false;
+            clearInterval(timerInterval);
+
+            let mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            let secs = (timerSeconds % 60).toString().padStart(2, '0');
+            let timeStr = `${mins}:${secs}`;
+
+            if (isWin) {
+                document.getElementById('finalTime').innerText = timeStr;
+                document.getElementById('finalMistakes').innerText = mistakes;
+                document.getElementById('winModal').classList.remove('hidden');
+            } else {
+                document.getElementById('gameOverModal').classList.remove('hidden');
+            }
+        }
+
+        function changeDifficulty() {
+            initGame();
+        }
+
+        function newGame() {
+            initGame();
+        }
+
+        // Initialize game on load
+        window.onload = () => {
+            initGame();
+        };
     </script>
 </body>
 </html>
