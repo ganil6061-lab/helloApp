@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bubble Pop Game - Progressive Speed</title>
+    <!-- Tailwind CSS for modern mobile-first design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(110vh) scale(0.6);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.9;
+            }
+            90% {
+                opacity: 0.9;
+            }
+            100% {
+                transform: translateY(-15vh) scale(1.1);
+                opacity: 0;
+            }
+        }
+        .bubble-animate {
+            animation: floatUp linear forwards;
+        }
+        @keyframes popEffect {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .pop-anim {
+            animation: popEffect 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white h-[100dvh] w-screen overflow-hidden flex flex-col justify-between">
+
+    <!-- Header / Stats Bar -->
+    <header class="w-full px-4 py-3 bg-white/10 backdrop-blur-md border-b border-white/20 flex justify-between items-center z-20 shadow-lg">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">🏆</span>
+            <div>
+                <p class="text-xs text-purple-300 font-semibold uppercase tracking-wider">Score</p>
+                <h1 id="scoreDisplay" class="text-2xl font-extrabold text-yellow-300">0</h1>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2 bg-purple-950/50 px-4 py-1.5 rounded-full border border-purple-500/30">
+            <span class="text-xl">⏳</span>
+            <div>
+                <span id="timerDisplay" class="text-xl font-bold tracking-widest text-pink-400">35</span><span class="text-xs text-pink-300">s</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <div>
+                <p class="text-xs text-purple-300 font-semibold uppercase tracking-wider text-right">High Score</p>
+                <h2 id="highScoreDisplay" class="text-xl font-bold text-teal-300 text-right">0</h2>
+            </div>
+            <span class="text-2xl">🔥</span>
+        </div>
+    </header>
+
+    <!-- Game Arena Canvas / Container -->
+    <main id="gameContainer" class="relative flex-1 w-full overflow-hidden cursor-pointer">
+        <!-- Speed level indicator badge -->
+        <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-semibold text-pink-300 tracking-wider flex items-center gap-1.5 shadow-md">
+            <span>⚡</span> Speed Level: <span id="speedLevelDisplay" class="text-yellow-300 font-bold">1</span>
+        </div>
+
+        <!-- Floating Particles Container -->
+        <div id="particleContainer" class="absolute inset-0 pointer-events-none z-10"></div>
+        
+        <!-- Interactive Bubbles will spawn here -->
+        <div id="bubbleLayer" class="absolute inset-0 overflow-hidden"></div>
+
+        <!-- Start Screen Overlay -->
+        <div id="startScreen" class="absolute inset-0 bg-black/70 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-6 text-center">
+            <div class="bg-white/10 p-8 rounded-3xl border border-white/20 shadow-2xl max-w-sm w-full flex flex-col items-center animate-bounce duration-1000">
+                <div class="text-6xl mb-4">🫧</div>
+                <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-pink-300 to-yellow-300 mb-2">Bubble Pop!</h2>
+                <p class="text-sm text-purple-200 mb-6">Game shuru mein dheemi rahegi, phir dheere-dheere speed aur bubbles ki raftaar tez hoti jayegi!</p>
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 active:scale-95 text-white font-bold rounded-2xl shadow-lg transition-all duration-200 text-lg flex items-center justify-center gap-2 border border-pink-400/40">
+                    <span>🚀</span> Game Shuru Karein
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="gameOverScreen" class="absolute inset-0 bg-black/80 backdrop-blur-md z-30 hidden flex flex-col items-center justify-center p-6 text-center">
+            <div class="bg-white/10 p-8 rounded-3xl border border-white/20 shadow-2xl max-w-sm w-full flex flex-col items-center">
+                <div class="text-6xl mb-3">🎉</div>
+                <h2 class="text-3xl font-extrabold text-yellow-300 mb-1">Khel Samapt!</h2>
+                <p class="text-sm text-purple-200 mb-4">Kya shandar performance thi!</p>
+                
+                <div class="bg-black/30 w-full p-4 rounded-2xl mb-6 border border-white/10 flex justify-around">
+                    <div>
+                        <p class="text-xs text-purple-300">Final Score</p>
+                        <p id="finalScore" class="text-2xl font-bold text-yellow-300">0</p>
+                    </div>
+                    <div class="border-r border-white/20"></div>
+                    <div>
+                        <p class="text-xs text-purple-300">Total Fode</p>
+                        <p id="totalPopped" class="text-2xl font-bold text-teal-300">0</p>
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-500 hover:to-emerald-600 active:scale-95 text-white font-bold rounded-2xl shadow-lg transition-all duration-200 text-lg flex items-center justify-center gap-2">
+                    <span>🔄</span> Dobara Khelein
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript Game Engine with Progressive Difficulty -->
+    <script>
+        let score = 0;
+        let poppedCount = 0;
+        let timeLeft = 35;
+        let gameInterval = null;
+        let spawnTimeout = null;
+        let isPlaying = false;
+        let highScore = localStorage.getItem('bubbleHighScore') || 0;
+        let gameElapsedSeconds = 0;
+
+        document.getElementById('highScoreDisplay').innerText = highScore;
+
+        // Audio synthesizer using Web Audio API for pop sound effects
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playPopSound(isGold = false) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = isGold ? 'triangle' : 'sine';
+            const startFreq = isGold ? 600 : 400;
+            const endFreq = isGold ? 1000 : 700;
+            
+            osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function startGame() {
+            // Reset state
+            score = 0;
+            poppedCount = 0;
+            timeLeft = 35;
+            gameElapsedSeconds = 0;
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('timerDisplay').innerText = timeLeft;
+            document.getElementById('speedLevelDisplay').innerText = 1;
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('bubbleLayer').innerHTML = '';
+            
+            isPlaying = true;
+
+            // Timer countdown loop every 1 second
+            gameInterval = setInterval(() => {
+                if (!isPlaying) return;
+                timeLeft--;
+                gameElapsedSeconds++;
+                document.getElementById('timerDisplay').innerText = timeLeft;
+
+                // Update speed indicator badge based on elapsed time
+                let currentSpeedLvl = 1;
+                if (gameElapsedSeconds > 25) currentSpeedLvl = 4;
+                else if (gameElapsedSeconds > 15) currentSpeedLvl = 3;
+                else if (gameElapsedSeconds > 8) currentSpeedLvl = 2;
+                document.getElementById('speedLevelDisplay').innerText = currentSpeedLvl;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // Start dynamic progressive bubble spawning loop
+            scheduleNextBubble();
+        }
+
+        function getSpawnDelay() {
+            // Formula to gradually decrease spawn interval (making it faster over time)
+            // Starts slow at ~1.4 seconds (1400ms) and speeds up down to ~0.35 seconds (350ms)
+            let delay = 1400 - (gameElapsedSeconds * 32);
+            return Math.max(350, delay);
+        }
+
+        function scheduleNextBubble() {
+            if (!isPlaying) return;
+            
+            spawnBubble();
+            
+            // Schedule next spawn with dynamically updated faster interval
+            spawnTimeout = setTimeout(scheduleNextBubble, getSpawnDelay());
+        }
+
+        function spawnBubble() {
+            if (!isPlaying) return;
+            const bubbleLayer = document.getElementById('bubbleLayer');
+            const bubble = document.createElement('div');
+            
+            // Random properties
+            const size = Math.floor(Math.random() * 25) + 45; // 45px to 70px
+            const leftPos = Math.random() * (window.innerWidth - size - 20) + 10;
+            
+            // Float speed also gets faster as time progresses (ranging from slow 4.5s down to fast 1.8s)
+            let floatDuration = 4.5 - (gameElapsedSeconds * 0.08);
+            floatDuration = Math.max(1.8, floatDuration);
+            
+            // 15% chance for a special gold bonus bubble
+            const isGold = Math.random() < 0.15;
+            
+            bubble.className = `absolute rounded-full flex items-center justify-center cursor-pointer bubble-animate shadow-lg backdrop-blur-sm`;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${leftPos}px`;
+            bubble.style.animationDuration = `${floatDuration}s`;
+            
+            if (isGold) {
+                bubble.style.background = 'radial-gradient(circle at 30% 30%, #ffeb3b, #ff9800)';
+                bubble.style.border = '2px solid rgba(255, 255, 255, 0.8)';
+                bubble.innerHTML = `<span class="text-xs">⭐</span>`;
+                bubble.dataset.points = '5';
+                bubble.dataset.gold = 'true';
+            } else {
+                const colors = [
+                    'radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.9), rgba(37, 99, 235, 0.8))',
+                    'radial-gradient(circle at 30% 30%, rgba(244, 114, 182, 0.9), rgba(219, 39, 119, 0.8))',
+                    'radial-gradient(circle at 30% 30%, rgba(52, 211, 153, 0.9), rgba(5, 150, 105, 0.8))',
+                    'radial-gradient(circle at 30% 30%, rgba(167, 139, 250, 0.9), rgba(109, 40, 217, 0.8))'
+                ];
+                bubble.style.background = colors[Math.floor(Math.random() * colors.length)];
+                bubble.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                bubble.dataset.points = '1';
+            }
+
+            // Bubble touch/click interaction handler
+            const popHandler = (e) => {
+                e.stopPropagation();
+                if (!isPlaying) return;
+                
+                const points = parseInt(bubble.dataset.points);
+                const isG = bubble.dataset.gold === 'true';
+                
+                score += points;
+                poppedCount++;
+                document.getElementById('scoreDisplay').innerText = score;
+                
+                playPopSound(isG);
+                createPopEffect(e.clientX || (e.touches && e.touches[0].clientX), e.clientY || (e.touches && e.touches[0].clientY), isG);
+                
+                bubble.remove();
+            };
+
+            bubble.addEventListener('mousedown', popHandler);
+            bubble.addEventListener('touchstart', popHandler);
+
+            // Remove bubble when animation finishes
+            bubble.addEventListener('animationend', () => {
+                bubble.remove();
+            });
+
+            bubbleLayer.appendChild(bubble);
+        }
+
+        function createPopEffect(x, y, isGold) {
+            const particleContainer = document.getElementById('particleContainer');
+            if (!x || !y) return;
+            
+            // Floating text indicator
+            const floatText = document.createElement('div');
+            floatText.className = `absolute font-extrabold text-lg pointer-events-none pop-anim z-20 ${isGold ? 'text-yellow-300' : 'text-teal-300'}`;
+            floatText.style.left = `${x - 15}px`;
+            floatText.style.top = `${y - 20}px`;
+            floatText.innerText = isGold ? '+5 ⭐' : '+1';
+            particleContainer.appendChild(floatText);
+            
+            setTimeout(() => {
+                floatText.remove();
+            }, 300);
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearInterval(gameInterval);
+            clearTimeout(spawnTimeout);
+            
+            // Clear remaining bubbles
+            document.getElementById('bubbleLayer').innerHTML = '';
+            
+            // Update High Score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('bubbleHighScore', highScore);
+                document.getElementById('highScoreDisplay').innerText = highScore;
+            }
+            
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('totalPopped').innerText = poppedCount;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
